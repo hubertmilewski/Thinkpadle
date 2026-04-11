@@ -25,7 +25,7 @@ export function ResultGrid({ guesses }: ResultGridProps) {
           <div key={header}>{header}</div>
         ))}
       </div>
-      
+
       <div className="flex flex-col gap-1.5 sm:gap-2 max-h-75 sm:max-h-95 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {guesses.map((result) => (
           <GuessRow key={result.data.model} result={result} />
@@ -48,9 +48,9 @@ function GuessRow({ result }: { result: GuessResult }) {
   };
 
   const renderCell = (label: string | number, stat: ComparisonStatus, delayIndex: number, unit: string = "") => (
-    <div 
+    <div
       className={cn(getBoxClass(stat), "animate-fade-in")}
-      style={{ animationDelay: `${delayIndex * 150}ms` }} 
+      style={{ animationDelay: `${delayIndex * 150}ms` }}
     >
       <span className="relative z-10">{label}{unit}</span>
       {stat === "higher" && (

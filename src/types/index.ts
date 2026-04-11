@@ -15,7 +15,7 @@ export interface GuessResult {
   status: {
     model: ComparisonStatus;
     series: ComparisonStatus;
-    generation: ComparisonStatus; 
+    generation: ComparisonStatus;
     year: ComparisonStatus;
     screen: ComparisonStatus;
     weight: ComparisonStatus;

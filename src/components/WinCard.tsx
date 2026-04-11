@@ -38,7 +38,7 @@ export function WinCard({
   guesses,
   challengeId,
   yesterdayModel,
-  imageCredit, 
+  imageCredit,
 }: WinCardProps) {
   const [timeLeft, setTimeLeft] = useState(getNextLaunchTime());
   const [stats, setStats] = useState<DailyStats | null>(null);

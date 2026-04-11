@@ -4,6 +4,7 @@ import "./globals.css";
 import { IBM_Plex_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { AuthProvider } from "@/components/AuthProvider";
 
 const ibmPlex = IBM_Plex_Sans({
   weight: ["400", "600", "700"],
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
   description: siteContent.metadata.description,
   keywords: [...siteContent.metadata.keywords],
   authors: [{ name: siteContent.metadata.author }],
-  
+
   openGraph: {
     title: siteContent.header.title,
     description: siteContent.metadata.description,
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     siteName: siteContent.header.title,
     images: [
       {
-        url: "/og-image.png", 
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Thinkpadle - Daily ThinkPad Guessing Game",
@@ -67,9 +68,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${ibmPlex.variable} antialiased font-sans`}>
-        {children}
-        <Analytics />
-        <SpeedInsights/>
+        <AuthProvider>
+          {children}
+          <Analytics />
+          <SpeedInsights/>
+        </AuthProvider>
       </body>
     </html>
   );

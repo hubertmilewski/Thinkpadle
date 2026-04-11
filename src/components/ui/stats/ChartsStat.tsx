@@ -64,16 +64,16 @@ export function ChartStat({ distribution, userTries }: ChartStatProps) {
 
           <Bar
             dataKey="count"
-            radius={[0, 0, 0, 0]} 
-            minPointSize={4} 
-            barSize={18} 
+            radius={[0, 0, 0, 0]}
+            minPointSize={4}
+            barSize={18}
             activeBar={false}
             isAnimationActive={false}
           >
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.isUser ? "#2ed1b4" : "#2a2a2a"} 
+                fill={entry.isUser ? "#2ed1b4" : "#2a2a2a"}
               />
             ))}
             <LabelList

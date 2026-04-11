@@ -132,11 +132,12 @@ export function SearchInput({
 
   return (
     <div ref={wrapperRef} className="w-full relative px-2 sm:px-0 z-100">
-      
+
       <div className="flex gap-2 w-full">
-        
+
         <div className="relative flex-1">
           <input
+            autoFocus
             type="text"
             value={query}
             onChange={(e) => {

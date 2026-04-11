@@ -1,17 +1,22 @@
 import { useState, useRef, MouseEvent, TouchEvent } from "react";
-import Image from "next/image";
 import { siteContent } from "@/data/content";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface ThinkPadImageProps {
   src: string;
   alt: string;
+  onImageLoad?: () => void;
+  onImageError?: () => void;
 }
 
-export function ThinkPadImage({ src, alt }: ThinkPadImageProps) {
+export function ThinkPadImage({ src, alt, onImageLoad, onImageError }: ThinkPadImageProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [position, setPosition] = useState({ x: 50, y: 50 });
-  const [dynamicRatio, setDynamicRatio] = useState<string>("16/9"); 
+  const [dynamicRatio, setDynamicRatio] = useState<string>("16/9");
+  const [isLoaded, setIsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+
 
   const handleZoom = (clientX: number, clientY: number) => {
     if (!containerRef.current) return;
@@ -33,10 +38,10 @@ export function ThinkPadImage({ src, alt }: ThinkPadImageProps) {
       <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium mb-3 sm:mb-4 text-center">
         {siteContent.header.subtitle}
       </p>
-      
+
       <div
         ref={containerRef}
-        className="w-full mx-auto relative bg-[#111] overflow-hidden border border-gray-800 rounded-sm cursor-zoom-in shadow-lg transition-all duration-300"
+        className="w-full mx-auto relative bg-[#111] overflow-hidden border border-gray-800 cursor-zoom-in shadow-lg transition-all duration-300"
         style={{ aspectRatio: dynamicRatio }}
         onMouseEnter={() => setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
@@ -55,21 +60,30 @@ export function ThinkPadImage({ src, alt }: ThinkPadImageProps) {
             transformOrigin: `${position.x}% ${position.y}%`,
           }}
         >
-          <Image
+          <img
             src={src || "/placeholder.png"}
             alt={alt}
-            fill
-            className="object-contain p-1 select-none pointer-events-none"
-            sizes="(max-w-sm) 100vw, 384px"
-            priority
+            className={`absolute inset-0 w-full h-full object-contain select-none pointer-events-none transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={(event) => {
               const { naturalWidth, naturalHeight } = event.currentTarget;
               if (naturalWidth && naturalHeight) {
                 setDynamicRatio(`${naturalWidth}/${naturalHeight}`);
               }
+              setIsLoaded(true);
+              if (onImageLoad) onImageLoad();
+            }}
+            onError={() => {
+              if (onImageError) onImageError();
             }}
           />
         </div>
+
+        {!isLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <Spinner size={32} />
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-tp-bg/10 pointer-events-none mix-blend-multiply" />
       </div>
     </div>

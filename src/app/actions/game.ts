@@ -122,7 +122,7 @@ export async function submitGuess(
 
   const { data, error } = await supabase.rpc("check_guess_by_name", {
     guessed_name: guessModelName,
-    effective_date: challengeDate, 
+    effective_date: challengeDate,
   });
 
   if (error || !data) {

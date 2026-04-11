@@ -5,15 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronUp, ChevronDown } from "lucide-react";
 
 import { siteContent } from "@/data/content";
+import { TRANSITION_SETTINGS, MOBILE_DRAWER_VARIANTS, DESKTOP_MODAL_VARIANTS } from "@/lib/animations";
 
 const isMobile = () => typeof window !== "undefined" && window.innerWidth < 640;
 
 interface HowToPlayProps {
+  mode: "daily" | "survival";
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function HowToPlay({ isOpen, onClose }: HowToPlayProps) {
+export function HowToPlay({ mode, isOpen, onClose }: HowToPlayProps) {
+  const content = mode === "daily" ? siteContent.howToPlayDaily : siteContent.howToPlaySurvival;
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -35,62 +38,68 @@ export function HowToPlay({ isOpen, onClose }: HowToPlayProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-transparent sm:bg-black/80 sm:backdrop-blur-sm"
+            className="absolute inset-0 bg-transparent sm:bg-black/80"
           />
 
           <motion.div
-            initial={
-              isMobile() ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }
-            }
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={
-              isMobile() ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }
-            }
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="relative w-full h-full sm:h-auto sm:max-w-lg bg-tp-card border-0 sm:border-2 border-gray-800 p-6 sm:p-8 shadow-2xl rounded-none flex flex-col"
+            variants={isMobile() ? MOBILE_DRAWER_VARIANTS : DESKTOP_MODAL_VARIANTS}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={TRANSITION_SETTINGS}
+            className="relative w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-md bg-tp-card border-0 sm:border-2 border-gray-800 p-6 sm:p-8 shadow-2xl rounded-none flex flex-col overflow-y-auto no-scrollbar"
           >
-            <button
-              onClick={onClose}
-              className="absolute right-3 sm:right-4 top-3 sm:top-4 text-gray-500 hover:text-white transition-colors z-210"
-            >
-              <X size={isMobile() ? 28 : 24} />
-            </button>
-
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-1 sm:mb-2">
-              {siteContent.howToPlay.title}
-            </h2>
+            <div className="relative flex justify-between items-center w-full mb-1 sm:mb-2 pt-1 sm:pt-0">
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter">
+                {content.title}
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-white transition-colors shrink-0"
+              >
+                <X size={isMobile() ? 28 : 24} />
+              </button>
+            </div>
             <p className="text-lg font-bold text-gray-300 mb-6 sm:mb-8 uppercase tracking-tight">
-              {siteContent.howToPlay.subtitle}
+              {content.subtitle}
             </p>
 
             <ul className="space-y-3 mb-8 sm:mb-10 text-gray-400 font-medium list-disc pl-5">
-              {siteContent.howToPlay.rules.map((rule, i) => (
+              {content.rules.map((rule, i) => (
                 <li key={i}>{rule}</li>
               ))}
             </ul>
 
             <div className="border-t border-gray-800 pt-6 sm:pt-8 grow">
               <h3 className="text-sm font-black uppercase text-gray-500 mb-4 sm:mb-6 tracking-widest">
-                {siteContent.howToPlay.examples.title}
+                {content.examples.title}
               </h3>
 
-              <div className="space-y-6 sm:space-y-8">
-                <ExampleRow
-                  label="T440"
-                  status="correct"
-                  desc={siteContent.howToPlay.examples.correct}
-                />
-                <ExampleRow
-                  label="2011"
-                  status="higher"
-                  desc={siteContent.howToPlay.examples.higher}
-                />
-                <ExampleRow
-                  label='12.5"'
-                  status="lower"
-                  desc={siteContent.howToPlay.examples.lower}
-                />
-              </div>
+              {mode === "daily" ? (
+                <div className="space-y-6 sm:space-y-8">
+                  <ExampleRow
+                    label="T440"
+                    status="correct"
+                    desc={siteContent.howToPlayDaily.examples.correct}
+                  />
+                  <ExampleRow
+                    label="2011"
+                    status="higher"
+                    desc={siteContent.howToPlayDaily.examples.higher}
+                  />
+                  <ExampleRow
+                    label='12.5"'
+                    status="lower"
+                    desc={siteContent.howToPlayDaily.examples.lower}
+                  />
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-sm">
+                  <p className="text-gray-400 font-bold uppercase tracking-tight text-sm sm:text-base leading-relaxed">
+                    {siteContent.howToPlaySurvival.examples.desc}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mt-auto sm:mt-12 w-full pt-6">
@@ -98,7 +107,7 @@ export function HowToPlay({ isOpen, onClose }: HowToPlayProps) {
                 onClick={onClose}
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-4 font-black uppercase tracking-widest transition-all active:scale-95 text-base sm:text-lg"
               >
-                {siteContent.howToPlay.button}
+                {content.button}
               </button>
             </div>
           </motion.div>

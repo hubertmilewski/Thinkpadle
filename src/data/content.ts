@@ -63,7 +63,7 @@ export const siteContent = {
     },
     imageCredit: "Image credit: ",
   },
-  howToPlay: {
+  howToPlayDaily: {
     title: "How To Play",
     subtitle: "Guess the ThinkPad in as few tries as possible.",
     rules: [
@@ -78,6 +78,24 @@ export const siteContent = {
       lower: "The target value is lower.",
     },
     button: "Start Playing",
+  },
+  howToPlaySurvival: {
+    title: "Survival Mode",
+    subtitle: "How many ThinkPads can you identify in a row?",
+    rules: [
+      "Identify the ThinkPad model shown in the photo.",
+      "The models are selected randomly from our entire database.",
+      "One wrong guess ends your streak instantly.",
+      "No hints or arrows are provided in this mode.",
+    ],
+    examples: {
+      title: "Goal",
+      desc: "Build the longest identification streak to climb the leaderboard!",
+    },
+    button: "Let's Go!",
+  },
+  ranking: {
+    title: "Ranking",
   },
   footer: {
     copyrightHighlight: "NOT AFFILIATED",
@@ -94,15 +112,38 @@ export const siteContent = {
   modals: {
     ranking: {
       title: "Leaderboard",
-      subtitle: "Coming Soon",
-      info: "Feature in development",
       button: "Back to game",
     },
     settings: {
       title: "Settings",
-      subtitle: "Coming Soon",
-      info: "Feature in development",
-      button: "Back to game",
+      subtitle: "Customize your profile",
+      nicknameLabel: "Nickname",
+      avatarLabel: "Avatar (URL/File)",
+      updateButton: "Save Changes",
+      logoutButton: "Log Out",
+    },
+  },
+  auth: {
+    tabs: {
+      login: "Login",
+      register: "Register",
+    },
+    githubButton: "Continue with GitHub",
+    orDivider: "or",
+    emailLabel: "Email address",
+    emailPlaceholder: "you@example.com",
+    passwordLabel: "Password",
+    passwordPlaceholder: "••••••••",
+    nicknameLabel: "Nickname",
+    nicknamePlaceholder: "CoolThinkpadUser",
+    avatarLabel: "Avatar Image",
+    loginSubmit: "Sign In",
+    registerSubmit: "Create Account",
+    errors: {
+      general: "An error occurred. Please try again.",
+      invalidEmail: "Invalid email address.",
+      weakPassword: "Password should be at least 6 characters.",
+      missingNickname: "Nickname is required.",
     },
   },
 } as const;
