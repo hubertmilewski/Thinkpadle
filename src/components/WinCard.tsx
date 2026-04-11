@@ -22,6 +22,7 @@ interface WinCardProps {
   challengeId: string;
   yesterdayModel: string | null;
   imageCredit?: string;
+  isFresh?: boolean;
 }
 
 const getNextLaunchTime = () => {
@@ -39,6 +40,7 @@ export function WinCard({
   challengeId,
   yesterdayModel,
   imageCredit,
+  isFresh = true,
 }: WinCardProps) {
   const [timeLeft, setTimeLeft] = useState(getNextLaunchTime());
   const [stats, setStats] = useState<DailyStats | null>(null);
@@ -58,10 +60,12 @@ export function WinCard({
     }
     fetchStats();
 
-    setTimeout(() => {
-      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-  }, [challengeId]);
+    if (isFresh) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [challengeId, isFresh]);
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft(getNextLaunchTime()), 1000);

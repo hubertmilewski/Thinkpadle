@@ -49,24 +49,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     getInitialSession();
 
+    const lastUserIdRef = { current: undefined as string | undefined };
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-
-        // Refresh the page on login/logout as requested
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-          if (event === "SIGNED_OUT") {
-            const { clearGameState } = require("@/lib/storage");
-            clearGameState();
-          }
-          if (!(window as any).__SKIP_AUTH_RELOAD) {
-            window.location.reload();
+        const currentUserId = session?.user?.id;
+        const prevUserId = lastUserIdRef.current;
+        
+        if (currentUserId !== prevUserId) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (prevUserId !== undefined) {
+             if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+               if (event === "SIGNED_OUT") {
+                 const { clearGameState } = require("@/lib/storage");
+                 clearGameState();
+               }
+               if (!(window as any).__SKIP_AUTH_RELOAD) {
+                 window.location.reload();
+               }
+             }
           }
         }
+        
+        setIsLoading(false);
+        lastUserIdRef.current = currentUserId;
       }
     });
 

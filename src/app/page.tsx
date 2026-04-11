@@ -65,8 +65,10 @@ export default function Thinkpadle() {
   const [currentChallengeId, setCurrentChallengeId] = useState<string | null>(
     null,
   );
+  const [isRestored, setIsRestored] = useState(false);
 
   const wasLoggedIn = useRef(!!user);
+  const lastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -77,11 +79,17 @@ export default function Thinkpadle() {
   useEffect(() => {
     if (isAuthLoading) return;
 
-    // Reset state and clear suspicious local data on auth change
+    const currentId = user?.id || null;
+    if (currentId === lastIdRef.current && isReady) {
+      return;
+    }
+    lastIdRef.current = currentId;
+
     setGuesses([]);
     setHasGivenUp(false);
     setShowWinCard(false);
     setIsReady(false);
+    setIsRestored(false);
 
     async function initGame() {
       const [img, credit, names, challengeId, yesterday] = await Promise.all([
@@ -105,15 +113,26 @@ export default function Thinkpadle() {
           if (dbSession) {
             setGuesses(dbSession.guesses);
             setHasGivenUp(dbSession.hasGivenUp);
-            if (dbSession.won) setShowWinCard(true);
+            if (dbSession.won) {
+              setIsRestored(true);
+              setShowWinCard(true);
+            } else if (dbSession.hasGivenUp) {
+              setIsRestored(true);
+            }
           }
         } else {
           const { guesses: savedGuesses, hasGivenUp: savedHasGivenUp } = loadGameState(challengeId);
           if (savedGuesses.length > 0) {
             setGuesses(savedGuesses);
-            if (savedGuesses.some((g) => g.status.model === "correct")) setShowWinCard(true);
+            if (savedGuesses.some((g) => g.status.model === "correct")) {
+              setIsRestored(true);
+              setShowWinCard(true);
+            }
           }
-          if (savedHasGivenUp) setHasGivenUp(true);
+          if (savedHasGivenUp) {
+            setIsRestored(true);
+            setHasGivenUp(true);
+          }
         }
       }
 
@@ -121,7 +140,7 @@ export default function Thinkpadle() {
     }
 
     initGame();
-  }, [isAuthLoading, user]);
+  }, [isAuthLoading, user?.id, isReady]);
 
   useEffect(() => {
     if (!isReady || !currentChallengeId || user || wasLoggedIn.current) return;
@@ -233,15 +252,16 @@ export default function Thinkpadle() {
             {currentChallengeId && (showWinCard || hasGivenUp) && (
               <motion.div
                 key={showWinCard ? "win" : "lose"}
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={isRestored ? false : { opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
+                transition={isRestored ? { duration: 0 } : undefined}
                 className="w-full flex justify-center my-4"
               >
                 {showWinCard ? (
-                  <WinCard targetModel={guesses[0].data.model} guesses={guesses} challengeId={currentChallengeId} yesterdayModel={yesterdayModel} imageCredit={dailyImageCredit || undefined} />
+                  <WinCard targetModel={guesses[0].data.model} guesses={guesses} challengeId={currentChallengeId} yesterdayModel={yesterdayModel} imageCredit={dailyImageCredit || undefined} isFresh={!isRestored} />
                 ) : (
-                  <LoseCard guesses={guesses} challengeId={currentChallengeId} yesterdayModel={yesterdayModel} imageCredit={dailyImageCredit || undefined} />
+                  <LoseCard guesses={guesses} challengeId={currentChallengeId} yesterdayModel={yesterdayModel} imageCredit={dailyImageCredit || undefined} isFresh={!isRestored} />
                 )}
               </motion.div>
             )}

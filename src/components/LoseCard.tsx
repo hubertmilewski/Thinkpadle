@@ -21,6 +21,7 @@ interface LoseCardProps {
   challengeId: string;
   yesterdayModel: string | null;
   imageCredit?: string;
+  isFresh?: boolean;
 }
 
 const getNextLaunchTime = () => {
@@ -37,6 +38,7 @@ export function LoseCard({
   challengeId,
   yesterdayModel,
   imageCredit,
+  isFresh = true,
 }: LoseCardProps) {
   const [timeLeft, setTimeLeft] = useState(getNextLaunchTime());
   const [stats, setStats] = useState<DailyStats | null>(null);
@@ -56,10 +58,12 @@ export function LoseCard({
     }
     fetchStats();
 
-    setTimeout(() => {
-      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-  }, [challengeId]);
+    if (isFresh) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [challengeId, isFresh]);
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft(getNextLaunchTime()), 1000);
