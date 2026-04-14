@@ -1,5 +1,6 @@
 "use server";
 
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 interface SurvivalModel {
@@ -146,4 +147,56 @@ export async function getAllModelNamesForSurvival(): Promise<string[]> {
       });
     })
     .map((m) => m.model);
+}
+
+export async function saveSurvivalScore(
+  accessToken: string,
+  score: number,
+  usedModelIds: string[],
+): Promise<{ success: boolean; error?: string }> {
+  const serverClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    },
+  );
+
+  const { data: userData, error: authError } =
+    await serverClient.auth.getUser(accessToken);
+
+  if (authError || !userData?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const userId = userData.user.id;
+
+  if (score < 0 || score > usedModelIds.length) {
+    return { success: false, error: "Invalid score" };
+  }
+
+  const MAX_REASONABLE_SCORE = 500;
+  if (score > MAX_REASONABLE_SCORE) {
+    return { success: false, error: "Score exceeds maximum allowed value" };
+  }
+
+  if (score === 0) {
+    return { success: true };
+  }
+
+  const { error } = await serverClient.from("survival_scores").insert({
+    player_id: userId,
+    score,
+  });
+
+  if (error) {
+    console.error("Error saving survival score:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
 }

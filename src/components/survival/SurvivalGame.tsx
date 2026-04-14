@@ -14,6 +14,7 @@ import {
   checkSurvivalGuess,
   getAllModelNamesForSurvival,
   getPersonalBest,
+  saveSurvivalScore,
 } from "@/app/actions/survival";
 import { supabase } from "@/lib/supabase";
 
@@ -112,14 +113,17 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
     setIsLoadedFromStorage(true);
   }, []);
 
-  const saveScoreToDB = async (finalScore: number) => {
+  const saveScoreToDB = async (finalScore: number, submittedUsedIds: string[]) => {
     if (!user || finalScore === 0) return;
-    const { error } = await supabase.from("survival_scores").insert({
-      player_id: user.id,
-      score: finalScore,
-    });
-    if (error) {
-      console.error("Error saving survival score:", error);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
+      console.error("No access token — cannot save score");
+      return;
+    }
+    const result = await saveSurvivalScore(accessToken, finalScore, submittedUsedIds);
+    if (!result.success) {
+      console.error("Error saving survival score:", result.error);
     }
   };
 
@@ -192,7 +196,8 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
           setIsChecking(false);
           localStorage.removeItem("thinkpadle_survival_state");
           if (user) {
-            saveScoreToDB(newScore);
+            const finalUsedIds = [...usedModelIds, currentModel.modelId];
+            saveScoreToDB(newScore, finalUsedIds);
           }
         }
       }, 800);
@@ -204,7 +209,7 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
       localStorage.removeItem("thinkpadle_survival_state");
 
       if (user) {
-        saveScoreToDB(score);
+        saveScoreToDB(score, usedModelIds);
       }
     }
   };
@@ -226,7 +231,6 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
 
   return (
     <div className="w-full max-w-md flex flex-col items-center gap-4 sm:gap-6">
-      {}
       <div className="w-full flex justify-between items-end px-2 mb-2">
         <div className="flex flex-col">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{survivalContent.scoreLabel}</span>
