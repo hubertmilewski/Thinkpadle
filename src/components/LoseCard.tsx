@@ -179,8 +179,14 @@ export function LoseCard({
           </button>
         </div>
         {imageCredit && (
-          <div className="text-[10px] sm:text-xs text-gray-500 mt-6 font-medium tracking-widest uppercase">
-            {siteContent.winCard.imageCredit} {imageCredit}
+          <div className="mt-6 flex flex-col items-center w-full">
+            <span className="text-[8px] sm:text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">
+                {siteContent.winCard.imageCredit}
+            </span>
+            <div
+              className="text-[9px] sm:text-[11px] text-gray-500 italic max-w-xs leading-tight [&>a]:text-tp-red [&>a]:font-semibold [&>a:hover]:underline [&>bdi>a]:text-tp-red [&>bdi>a]:font-semibold [&>bdi>a:hover]:underline wrap-break-words text-center"
+              dangerouslySetInnerHTML={{ __html: imageCredit }}
+            />
           </div>
         )}
       </div>
