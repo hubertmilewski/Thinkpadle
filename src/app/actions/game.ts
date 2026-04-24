@@ -23,19 +23,43 @@ async function getDailyModel(): Promise<ModelData | null> {
         year,
         screen,
         weight,
-        image_url
+        image_url,
+        image_urls
       )
     `,
     )
     .eq("challenge_date", challengeDate)
-    .single();
+    .maybeSingle();
 
   if (error || !data || !data.models) {
-    console.error("Error fetching daily model:", error);
     return null;
   }
 
-  const target = data.models as unknown as ModelData;
+  const m: any = data.models;
+
+  let finalImageUrl = m.image_url;
+
+  if (!finalImageUrl && Array.isArray(m.image_urls) && m.image_urls.length > 0) {
+    const urls = m.image_urls.filter((e: string) => {
+      if (typeof e !== "string") return false;
+      const lower = e.toLowerCase();
+      return !lower.includes(".pdf") && !lower.includes(".djvu") && !lower.includes(".ogv") && !lower.includes(".webm") && !lower.includes(".mp4");
+    });
+    if (urls.length > 0) {
+      finalImageUrl = urls[0].split("|||")[0];
+    }
+  }
+
+  const target: ModelData = {
+    model: m.model,
+    series: m.series,
+    generation: m.generation,
+    year: m.year,
+    screen: m.screen,
+    weight: m.weight,
+    image_url: finalImageUrl,
+  };
+
   return target;
 }
 
@@ -46,10 +70,9 @@ export async function getDailyChallengeId(): Promise<string | null> {
     .from("daily_challenges")
     .select("id")
     .eq("challenge_date", challengeDate)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
-    console.error("Error fetching daily challenge id:", error);
     return null;
   }
 
@@ -71,10 +94,9 @@ export async function getDailyImageCredit(): Promise<string | null> {
     .from("daily_challenges")
     .select("image_credit")
     .eq("challenge_date", challengeDate)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
-    console.error("Error fetching daily image credit:", error);
     return null;
   }
 
@@ -94,10 +116,9 @@ export async function getYesterdaysModel(): Promise<string | null> {
       )
     `)
     .eq("challenge_date", yesterdayString)
-    .single();
+    .maybeSingle();
 
   if (error || !data || !data.models) {
-    console.error("I was unable to download yesterday's model:", error);
     return null;
   }
 
