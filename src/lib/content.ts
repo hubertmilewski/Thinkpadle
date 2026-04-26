@@ -14,5 +14,11 @@ export const survivalContent = {
   correctAnswerLabel: "CORRECT ANSWER",
   photoAuthorsLabel: "PHOTO AUTHORS:",
   playAgainButton: "PLAY AGAIN",
-  backToDailyButton: "BACK TO DAILY"
+  backToDailyButton: "BACK TO DAILY",
+  guestModalTitle: "SUBMIT TO RANKING",
+  guestNicknameLabel: "YOUR NICKNAME",
+  guestNicknamePlaceholder: "Enter your nickname...",
+  guestSubmitButton: "SUBMIT SCORE",
+  guestSubmittedMessage: "SCORE SUBMITTED!",
+  guestCancelButton: "NOT NOW"
 };

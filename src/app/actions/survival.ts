@@ -92,6 +92,7 @@ export async function getSurvivalLeaderboard(): Promise<
     .select(`
       score,
       created_at,
+      nickname,
       profiles (
         nickname,
         avatar_url
@@ -107,7 +108,7 @@ export async function getSurvivalLeaderboard(): Promise<
 
   return data.map((row: any) => ({
     score: row.score,
-    nickname: row.profiles?.nickname || "Anonymous",
+    nickname: row.profiles?.nickname || row.nickname || "Anonymous",
     avatarUrl: row.profiles?.avatar_url || "",
     createdAt: row.created_at,
   }));
@@ -150,30 +151,43 @@ export async function getAllModelNamesForSurvival(): Promise<string[]> {
 }
 
 export async function saveSurvivalScore(
-  accessToken: string,
   score: number,
   usedModelIds: string[],
+  accessToken?: string,
+  guestNickname?: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const serverClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
+  let userId: string | null = null;
+  let finalNickname: string | null = null;
+  let client = supabase;
+
+  if (accessToken) {
+    const serverClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
       },
-    },
-  );
+    );
 
-  const { data: userData, error: authError } =
-    await serverClient.auth.getUser(accessToken);
+    const { data: userData, error: authError } =
+      await serverClient.auth.getUser(accessToken);
 
-  if (authError || !userData?.user) {
-    return { success: false, error: "Unauthorized" };
+    if (authError || !userData?.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    userId = userData.user.id;
+    client = serverClient;
+  } else if (guestNickname) {
+    finalNickname = guestNickname.trim().substring(0, 20);
+    if (!finalNickname) return { success: false, error: "Nickname is required" };
+  } else {
+    return { success: false, error: "No identity provided" };
   }
-
-  const userId = userData.user.id;
 
   if (score < 0 || score > usedModelIds.length) {
     return { success: false, error: "Invalid score" };
@@ -188,9 +202,10 @@ export async function saveSurvivalScore(
     return { success: true };
   }
 
-  const { error } = await serverClient.from("survival_scores").insert({
+  const { error } = await client.from("survival_scores").insert({
     player_id: userId,
     score,
+    nickname: finalNickname,
   });
 
   if (error) {

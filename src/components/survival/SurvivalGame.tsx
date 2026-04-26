@@ -6,6 +6,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { SearchInput } from "@/components/SearchInput";
 import { ThinkPadImage } from "@/components/ThinkPadImage";
 import { SurvivalGameOver } from "@/components/survival/SurvivalGameOver";
+import { NicknameModal } from "@/components/modals/NicknameModal";
 import { useAuth } from "@/components/AuthProvider";
 import { survivalContent } from "@/lib/content";
 
@@ -64,6 +65,8 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
   const [showCorrect, setShowCorrect] = useState(false);
   const [personalBest, setPersonalBest] = useState<number>(0);
   const [isLoadedFromStorage, setIsLoadedFromStorage] = useState(false);
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [hasSubmittedScore, setHasSubmittedScore] = useState(false);
 
 
   useEffect(() => {
@@ -113,18 +116,35 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
     setIsLoadedFromStorage(true);
   }, []);
 
-  const saveScoreToDB = async (finalScore: number, submittedUsedIds: string[]) => {
-    if (!user || finalScore === 0) return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token;
-    if (!accessToken) {
-      console.error("No access token — cannot save score");
-      return;
+  const saveScoreToDB = async (finalScore: number, submittedUsedIds: string[], guestName?: string) => {
+    if (finalScore === 0 || hasSubmittedScore) return;
+
+    if (user) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        console.error("No access token — cannot save score");
+        return;
+      }
+      const result = await saveSurvivalScore(finalScore, submittedUsedIds, accessToken);
+      if (result.success) {
+        setHasSubmittedScore(true);
+      } else {
+        console.error("Error saving survival score:", result.error);
+      }
+    } else if (guestName) {
+      const result = await saveSurvivalScore(finalScore, submittedUsedIds, undefined, guestName);
+      if (result.success) {
+        setHasSubmittedScore(true);
+      } else {
+        console.error("Error saving guest survival score:", result.error);
+      }
     }
-    const result = await saveSurvivalScore(accessToken, finalScore, submittedUsedIds);
-    if (!result.success) {
-      console.error("Error saving survival score:", result.error);
-    }
+  };
+
+  const handleGuestSubmit = async (name: string) => {
+    await saveScoreToDB(score, usedModelIds, name);
+    setIsNicknameModalOpen(false);
   };
 
   const loadNextModel = useCallback(async (excludeIds: string[]) => {
@@ -140,6 +160,7 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
     setCorrectAnswer("");
     setCurrentAuthors([]);
     setShowCorrect(false);
+    setHasSubmittedScore(false);
     localStorage.removeItem("thinkpadle_survival_state");
 
     const model = await loadNextModel([]);
@@ -210,6 +231,8 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
 
       if (user) {
         saveScoreToDB(score, usedModelIds);
+      } else if (score > 0) {
+        setIsNicknameModalOpen(true);
       }
     }
   };
@@ -320,6 +343,13 @@ export function SurvivalGame({ onReady }: SurvivalGameProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <NicknameModal
+        isOpen={isNicknameModalOpen}
+        onClose={() => setIsNicknameModalOpen(false)}
+        onSubmit={handleGuestSubmit}
+        score={score}
+      />
     </div>
   );
 }
